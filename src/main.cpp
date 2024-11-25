@@ -5,6 +5,7 @@
 #include "sx1272-hal.h"
 #include "debug.h"
 #include "stdio.h"
+#include "dotmat.h"
 
 /* Set this flag to '1' to display debug messages on the console */
 #define DEBUG_MESSAGE   1
@@ -37,6 +38,8 @@
 #define BUFFER_SIZE                                     32        // Define the payload size here
 
 #define Rx_ID                                           16
+
+void GPIO_Init(void);
 
 /*
  *  Global variables declarations
@@ -157,6 +160,9 @@ int main( void )
     State = IDLE;
     Buffer[0] = Rx_ID;
 
+
+    GPIO_Init();
+
     while( 1 )
     {
 
@@ -184,6 +190,8 @@ int main( void )
                 Head_Right();
                 break;
         }
+
+        updateDisplay(SCR_DEFAULT);
 
         switch( State )
         {
@@ -435,4 +443,16 @@ void OnRxError( void )
     // State = RX_ERROR;
     State = RX;
     debug_if( DEBUG_MESSAGE, "> OnRxError\n\r" );
+}
+
+void GPIO_Init(void)
+{
+    __HAL_RCC_GPIOA_CLK_ENABLE();
+
+    GPIO_InitTypeDef GPIO_InitStruct = {0};
+    GPIO_InitStruct.Pin = SER_PIN | RCK_PIN | SRCK_PIN;
+    GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+    GPIO_InitStruct.Pull = GPIO_NOPULL;
+    GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+    HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 }
