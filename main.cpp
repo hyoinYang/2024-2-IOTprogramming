@@ -1,7 +1,5 @@
 #include "mbed.h"
 #include "main.h"
-//#include "system_stm32f4xx.h"
-//#include "stm32f4xx_hal_tim.h"
 #include "sx1272-hal.h"
 #include "debug.h"
 #include "stdio.h"
@@ -81,11 +79,8 @@ uint8_t Buffer[BUFFER_SIZE];
 int16_t RssiValue = 0.0;
 int8_t SnrValue = 0.0;
 
-#define FOWARD 0
-#define UTURN 1
+#define UTURN 2
 
-int8_t FowardState = FOWARD;
-int8_t Flag = 0;
 int RightMotor = 150;
 int LeftMotor = 150;
 
@@ -98,6 +93,7 @@ static void MX_TIM4_Init(void);
 
 void Head_Right();
 void Head_Left();
+void Do_Uturn();
 
 int main( void ) 
 {
@@ -149,33 +145,33 @@ int main( void )
     int LeftValue = 0;
     int Direction = 0;
 
+    // PWM timer init and Initialization motor
     MX_TIM3_Init();
     MX_TIM4_Init();
     HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_2);
     HAL_TIM_PWM_Start(&htim4, TIM_CHANNEL_1);
+    __HAL_TIM_SET_COMPARE(&htim3, TIM_CHANNEL_2, LeftMotor);
+    __HAL_TIM_SET_COMPARE(&htim4, TIM_CHANNEL_1, RightMotor);
     
     State = IDLE;
     Buffer[0] = Rx_ID;
 
     while( 1 )
     {
-
-        __HAL_TIM_SET_COMPARE(&htim3, TIM_CHANNEL_2, LeftMotor);
-        __HAL_TIM_SET_COMPARE(&htim4, TIM_CHANNEL_1, RightMotor);
-        
         RightValue = HAL_GPIO_ReadPin(RightIR_GPIO_Port, RightIR_Pin);
         LeftValue = HAL_GPIO_ReadPin(LeftIR_GPIO_Port, LeftIR_Pin);
 
         printf("Right : %d    Left : %d\n", RightValue, LeftValue);
-        //sensorValue = HAL_GPIO_ReadPin(Prox_GPIO_Port, Prox_Pin);
+        
+        // decide uturn or not
         if (RightValue + LeftValue == 2) {
-            FowardState = UTURN;
+            Direction = UTURN;
         }
         else {
-            FowardState = FOWARD;
+            // compare two tracer sensor
             Direction = LeftValue - RightValue;
         }
-
+        // if not uturn decide direction
         switch (Direction) {
             case -1:
                 Head_Left();
@@ -183,7 +179,15 @@ int main( void )
             case 1:
                 Head_Right();
                 break;
+            case 2:
+                Do_Uturn();
+                break;
         }
+        // change motor value
+        __HAL_TIM_SET_COMPARE(&htim3, TIM_CHANNEL_2, LeftMotor);
+        __HAL_TIM_SET_COMPARE(&htim4, TIM_CHANNEL_1, RightMotor);
+        // motor 1s for rotate
+        HAL_Delay(1000);
 
         switch( State )
         {
@@ -205,26 +209,25 @@ int main( void )
         //     State = TX;
             break;
         }
-        HAL_Delay(100);
     }
 }
 
 void Head_Right() {
     printf("Head Right!\n");
-    // LeftMotor = 80;
-    // RightMotor = 200;
+    LeftMotor = 80;
+    RightMotor = 200;
 }
 
 void Head_Left() {
     printf("Head Left!\n");
-    // LeftMotor = 100;
-    // RightMotor = 210;
+    LeftMotor = 100;
+    RightMotor = 210;
 }
 
-void GO_U_turn() {
+void Do_Uturn() {
     printf("GO UTURN\n");
-    // LeftMotor = 100;
-    // RightMotor = 100;
+    LeftMotor = 100;
+    RightMotor = 100;
 }
 
 static void MX_TIM3_Init(void)
