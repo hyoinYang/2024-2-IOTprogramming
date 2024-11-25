@@ -197,12 +197,12 @@ void GPIO_Init(void)
 
     /* 초음파 관련 핀 설정 */
 
-    GPIO_InitStruct.Pin = GPIO_PIN_0 | ECHO_Pin;
+    GPIO_InitStruct.Pin = ECHO_Pin;
     GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
     GPIO_InitStruct.Pull = GPIO_NOPULL;
     HAL_GPIO_Init(ECHO_GPIO_Port, &GPIO_InitStruct);
 
-    GPIO_InitStruct.Pin = LD2_Pin | TRIG_Pin;
+    GPIO_InitStruct.Pin = TRIG_Pin;
     GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
     GPIO_InitStruct.Pull = GPIO_NOPULL;
     GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
@@ -210,15 +210,15 @@ void GPIO_Init(void)
 }
 
 float get_distance_cm(void) {
-	int us;
-	HAL_GPIO_WritePin(TRIG_GPIO_Port, TRIG_Pin, 1);
-	wait_us(10);
-	HAL_GPIO_WritePin(TRIG_GPIO_Port, TRIG_Pin, 0);
+    int us;
+    HAL_GPIO_WritePin(TRIG_GPIO_Port, TRIG_Pin, GPIO_PIN_SET);
+    wait_us(10);
+    HAL_GPIO_WritePin(TRIG_GPIO_Port, TRIG_Pin, GPIO_PIN_RESET);
 
-	while (HAL_GPIO_ReadPin(ECHO_GPIO_Port, ECHO_Pin) == 0);
+    while (HAL_GPIO_ReadPin(ECHO_GPIO_Port, ECHO_Pin) == GPIO_PIN_RESET);
 
-	for (us = 0; HAL_GPIO_ReadPin(ECHO_GPIO_Port, ECHO_Pin) == 1; us++) {
-		wait_us(1);
-	}
-	return (us / 58.0);
+    for (us = 0; HAL_GPIO_ReadPin(ECHO_GPIO_Port, ECHO_Pin) == GPIO_PIN_SET; us++) {
+        wait_us(1);
+    }
+    return (us / 58.0);
 }
