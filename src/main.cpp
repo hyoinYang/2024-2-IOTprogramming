@@ -188,3 +188,10 @@ void OnRxError(void)
     State = RX;
     debug_if(DEBUG_MESSAGE, "> OnRxError\n\r");
 }
+
+void GPIO_Init(void)
+{
+    __HAL_RCC_GPIOA_CLK_ENABLE();
+
+    GPIO_InitTypeDef GPIO_InitStruct = {0};
+}
