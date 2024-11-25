@@ -212,13 +212,21 @@ void GPIO_Init(void)
 float get_distance_cm(void) {
     int us;
     HAL_GPIO_WritePin(TRIG_GPIO_Port, TRIG_Pin, GPIO_PIN_SET);
-    wait_us(10);
-    HAL_GPIO_WritePin(TRIG_GPIO_Port, TRIG_Pin, GPIO_PIN_RESET);
+    debug("enabled TRIG\n");
 
+    wait_us(20);
+
+    HAL_GPIO_WritePin(TRIG_GPIO_Port, TRIG_Pin, GPIO_PIN_RESET);
+    debug("disabled TRIG\n");
+
+    debug("waits for ECHO\n");
     while (HAL_GPIO_ReadPin(ECHO_GPIO_Port, ECHO_Pin) == GPIO_PIN_RESET);
 
+    debug("measure pulse width of ECHO\n");
     for (us = 0; HAL_GPIO_ReadPin(ECHO_GPIO_Port, ECHO_Pin) == GPIO_PIN_SET; us++) {
         wait_us(1);
     }
+
+    debug("done ultra-sonic\n");
     return (us / 58.0);
 }
