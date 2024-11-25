@@ -23,6 +23,12 @@ Maintainer: Miguel Luis and Gregory Cristian
 
 static uint8_t phymac_id;
 
+#define ECHO_Pin GPIO_PIN_11
+#define ECHO_GPIO_Port GPIOA
+#define TRIG_Pin GPIO_PIN_12
+#define TRIG_GPIO_Port GPIOA
+
+
 /*
  * Callback functions prototypes
  */
@@ -62,4 +68,7 @@ void OnFhssChangeChannel(uint8_t channelIndex);
 void OnCadDone(void);
 
 static void MX_GPIO_Init(void);
+
+float get_distance_cm(void);
+
 #endif // __MAIN_H__
