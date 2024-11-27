@@ -193,9 +193,11 @@ int main( void )
         // motor 1s for rotate
         HAL_Delay(500);
 
+        // stop motor
         __HAL_TIM_SET_COMPARE(&htim3, TIM_CHANNEL_2, 150);
         __HAL_TIM_SET_COMPARE(&htim4, TIM_CHANNEL_1, 150);
-
+        HAL_Delay(500);
+      
         switch( State )
         {
         case IDLE:
@@ -238,7 +240,7 @@ void Foward() {
 }
 
 void Do_Uturn() {
-    printf("GO UTURN\n");
+    printf("DO UTURN\n");
     LeftMotor = 100;
     RightMotor = 100;
 }
