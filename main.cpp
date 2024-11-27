@@ -94,6 +94,7 @@ static void MX_TIM4_Init(void);
 void Head_Right();
 void Head_Left();
 void Do_Uturn();
+void Foward();
 
 int main( void ) 
 {
@@ -176,6 +177,9 @@ int main( void )
             case -1:
                 Head_Left();
                 break;
+            case 0:
+                Foward();
+                break;
             case 1:
                 Head_Right();
                 break;
@@ -187,7 +191,10 @@ int main( void )
         __HAL_TIM_SET_COMPARE(&htim3, TIM_CHANNEL_2, LeftMotor);
         __HAL_TIM_SET_COMPARE(&htim4, TIM_CHANNEL_1, RightMotor);
         // motor 1s for rotate
-        HAL_Delay(1000);
+        HAL_Delay(500);
+
+        __HAL_TIM_SET_COMPARE(&htim3, TIM_CHANNEL_2, 150);
+        __HAL_TIM_SET_COMPARE(&htim4, TIM_CHANNEL_1, 150);
 
         switch( State )
         {
@@ -222,6 +229,12 @@ void Head_Left() {
     printf("Head Left!\n");
     LeftMotor = 100;
     RightMotor = 210;
+}
+
+void Foward() {
+    printf("Head Front!\n");
+    LeftMotor = 90;
+    RightMotor = 200;
 }
 
 void Do_Uturn() {
