@@ -79,8 +79,6 @@ uint8_t Buffer[BUFFER_SIZE];
 int16_t RssiValue = 0.0;
 int8_t SnrValue = 0.0;
 
-#define UTURN 2
-
 int RightMotor = 150;
 int LeftMotor = 150;
 
@@ -162,17 +160,15 @@ int main( void )
         RightValue = HAL_GPIO_ReadPin(RightIR_GPIO_Port, RightIR_Pin);
         LeftValue = HAL_GPIO_ReadPin(LeftIR_GPIO_Port, LeftIR_Pin);
 
-        printf("Right : %d    Left : %d\n", RightValue, LeftValue);
-        
         // decide uturn or not
         if (RightValue + LeftValue == 2) {
-            Direction = UTURN;
+            Direction = 2;
         }
         else {
             // compare two tracer sensor
             Direction = LeftValue - RightValue;
         }
-        // if not uturn decide direction
+        // change motor value
         switch (Direction) {
             case -1:
                 Head_Left();
@@ -187,17 +183,13 @@ int main( void )
                 Do_Uturn();
                 break;
         }
-        // change motor value
-        __HAL_TIM_SET_COMPARE(&htim3, TIM_CHANNEL_2, LeftMotor);
-        __HAL_TIM_SET_COMPARE(&htim4, TIM_CHANNEL_1, RightMotor);
-        // motor 1s for rotate
+        // wait 0.5s for motor
         HAL_Delay(500);
 
-        // stop motor
         __HAL_TIM_SET_COMPARE(&htim3, TIM_CHANNEL_2, 150);
         __HAL_TIM_SET_COMPARE(&htim4, TIM_CHANNEL_1, 150);
         HAL_Delay(500);
-      
+
         switch( State )
         {
         case IDLE:
@@ -222,27 +214,25 @@ int main( void )
 }
 
 void Head_Right() {
-    printf("Head Right!\n");
-    LeftMotor = 80;
-    RightMotor = 200;
+    __HAL_TIM_SET_COMPARE(&htim3, TIM_CHANNEL_2, 80);
+    __HAL_TIM_SET_COMPARE(&htim4, TIM_CHANNEL_1, 200);
 }
 
 void Head_Left() {
-    printf("Head Left!\n");
-    LeftMotor = 100;
-    RightMotor = 210;
+    __HAL_TIM_SET_COMPARE(&htim3, TIM_CHANNEL_2, 100);
+    __HAL_TIM_SET_COMPARE(&htim4, TIM_CHANNEL_1, 210);
 }
 
 void Foward() {
-    printf("Head Front!\n");
-    LeftMotor = 90;
-    RightMotor = 200;
+    __HAL_TIM_SET_COMPARE(&htim3, TIM_CHANNEL_2, 100);
+    __HAL_TIM_SET_COMPARE(&htim4, TIM_CHANNEL_1, 200);
 }
 
 void Do_Uturn() {
-    printf("DO UTURN\n");
-    LeftMotor = 100;
-    RightMotor = 100;
+    __HAL_TIM_SET_COMPARE(&htim3, TIM_CHANNEL_2, 70);
+    __HAL_TIM_SET_COMPARE(&htim4, TIM_CHANNEL_1, 70);
+    // extra delay
+    HAL_Delay(520);
 }
 
 static void MX_TIM3_Init(void)
