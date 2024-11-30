@@ -96,6 +96,7 @@ void GPIO_Init(void);
 void Head_Right();
 void Head_Left();
 void Do_Uturn();
+void Foward();
 
 int main( void ) 
 {
@@ -167,10 +168,13 @@ int main( void )
             // compare two tracer sensor
             Direction = LeftValue - RightValue;
         }
-        // if not uturn decide direction
+        // change motor value
         switch (Direction) {
             case -1:
                 Head_Left();
+                break;
+            case 0:
+                Foward();
                 break;
             case 1:
                 Head_Right();
@@ -179,11 +183,12 @@ int main( void )
                 Do_Uturn();
                 break;
         }
-        // change motor value
-        __HAL_TIM_SET_COMPARE(&htim3, TIM_CHANNEL_2, LeftMotor);
-        __HAL_TIM_SET_COMPARE(&htim4, TIM_CHANNEL_1, RightMotor);
         // motor 1s for rotate
-        HAL_Delay(1000);
+        HAL_Delay(500);
+
+        __HAL_TIM_SET_COMPARE(&htim3, TIM_CHANNEL_2, 150);
+        __HAL_TIM_SET_COMPARE(&htim4, TIM_CHANNEL_1, 150);
+        HAL_Delay(500);
 
         switch( State )
         {
@@ -209,21 +214,25 @@ int main( void )
 }
 
 void Head_Right() {
-    printf("Head Right!\n");
-    LeftMotor = 80;
-    RightMotor = 200;
+    __HAL_TIM_SET_COMPARE(&htim3, TIM_CHANNEL_2, 80);
+    __HAL_TIM_SET_COMPARE(&htim4, TIM_CHANNEL_1, 200);
 }
 
 void Head_Left() {
-    printf("Head Left!\n");
-    LeftMotor = 100;
-    RightMotor = 210;
+    __HAL_TIM_SET_COMPARE(&htim3, TIM_CHANNEL_2, 100);
+    __HAL_TIM_SET_COMPARE(&htim4, TIM_CHANNEL_1, 210);
+}
+
+void Foward() {
+    __HAL_TIM_SET_COMPARE(&htim3, TIM_CHANNEL_2, 100);
+    __HAL_TIM_SET_COMPARE(&htim4, TIM_CHANNEL_1, 200);
 }
 
 void Do_Uturn() {
-    printf("GO UTURN\n");
-    LeftMotor = 100;
-    RightMotor = 100;
+    __HAL_TIM_SET_COMPARE(&htim3, TIM_CHANNEL_2, 70);
+    __HAL_TIM_SET_COMPARE(&htim4, TIM_CHANNEL_1, 70);
+    // extra delay
+    HAL_Delay(520);
 }
 
 static void MX_TIM3_Init(void)
