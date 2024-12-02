@@ -85,7 +85,8 @@ int Lastuse = 0;
 TIM_HandleTypeDef htim1;
 TIM_HandleTypeDef htim8;
 
-static void MX_GPIO_Init(void);
+//static void MX_GPIO_Init(void);
+
 static void MX_TIM1_Init(void);
 static void MX_TIM8_Init(void);
 void GPIO_Init(void);
@@ -99,10 +100,17 @@ int main( void )
 {
     HAL_Init();
     uint8_t i;
-
     GPIO_Init();
 
     debug( "\n\n\r     SX1272 Ping Pong Demo Application \n\n\r" );
+
+    // Initialize Radio driver
+    RadioEvents.TxDone = OnTxDone;
+    RadioEvents.RxDone = OnRxDone;
+    RadioEvents.RxError = OnRxError;
+    RadioEvents.TxTimeout = OnTxTimeout;
+    RadioEvents.RxTimeout = OnRxTimeout;
+    Radio.Init( &RadioEvents );
 
     // verify the connection with the board
     while( Radio.Read( REG_VERSION ) == 0x00  )
@@ -138,14 +146,14 @@ int main( void )
     int RightValue = 0;
     int LeftValue = 0;
     int Direction = 0;
-    
+
     // PWM timer init and Initialization motor
     MX_TIM1_Init();
     MX_TIM8_Init();
     // Start PWM
     HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_1);
-    HAL_TIM_PWM_Start(&htim8, TIM_CHANNEL_2);   
-    
+    HAL_TIM_PWM_Start(&htim8, TIM_CHANNEL_2);
+
     State = IDLE;
     Buffer[0] = Rx_ID;
 
@@ -153,6 +161,8 @@ int main( void )
     {
         RightValue = HAL_GPIO_ReadPin(RightIR_GPIO_Port, RightIR_Pin);
         LeftValue = HAL_GPIO_ReadPin(LeftIR_GPIO_Port, LeftIR_Pin);
+
+        updateDisplay(SCR_DEFAULT);
 
         // decide uturn or not
         if (RightValue + LeftValue == 2) {
@@ -166,7 +176,7 @@ int main( void )
         if (Railout == 10) {
             Direction = 1;
         }
-        
+
         // change motor value
         switch (Direction) {
             case -1:
@@ -489,6 +499,7 @@ void OnRxError( void )
     State = RX;
     debug_if( DEBUG_MESSAGE, "> OnRxError\n\r" );
 }
+
 
 void GPIO_Init(void)
 {
