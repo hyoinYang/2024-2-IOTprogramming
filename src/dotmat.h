@@ -6,9 +6,9 @@
 #ifndef INC_DOTMAT_H_
 #define INC_DOTMAT_H_
 
-#define SER_PIN  GPIO_PIN_8
-#define RCK_PIN  GPIO_PIN_9
-#define SRCK_PIN GPIO_PIN_10
+#define SER_PIN  GPIO_PIN_13
+#define RCK_PIN  GPIO_PIN_14
+#define SRCK_PIN GPIO_PIN_15
 
 
 uint8_t SCR_DEFAULT[8] = {
