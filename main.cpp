@@ -3,6 +3,7 @@
 #include "sx1272-hal.h"
 #include "debug.h"
 #include "stdio.h"
+#include "dotmat.h"
 
 /* Set this flag to '1' to display debug messages on the console */
 #define DEBUG_MESSAGE   1
@@ -78,8 +79,6 @@ uint8_t Buffer[BUFFER_SIZE];
 
 int16_t RssiValue = 0.0;
 int8_t SnrValue = 0.0;
-int Railout = 0;
-int Lastuse = 0;
 
 TIM_HandleTypeDef htim1;
 TIM_HandleTypeDef htim8;
@@ -88,6 +87,7 @@ TIM_HandleTypeDef htim8;
 
 static void MX_TIM1_Init(void);
 static void MX_TIM8_Init(void);
+void GPIO_Init(void);
 
 void Head_Right();
 void Head_Left();
@@ -98,6 +98,7 @@ int main( void )
 {
     HAL_Init();
     uint8_t i;
+    GPIO_Init();
 
     debug( "\n\n\r     SX1272 Ping Pong Demo Application \n\n\r" );
 
@@ -159,6 +160,8 @@ int main( void )
         RightValue = HAL_GPIO_ReadPin(RightIR_GPIO_Port, RightIR_Pin);
         LeftValue = HAL_GPIO_ReadPin(LeftIR_GPIO_Port, LeftIR_Pin);
 
+        updateDisplay(SCR_DEFAULT);
+
         // decide uturn or not
         if (RightValue + LeftValue == 2) {
             Direction = 2;
@@ -166,10 +169,6 @@ int main( void )
         else {
             // compare two tracer sensor
             Direction = LeftValue - RightValue;
-        }
-
-        if (Railout == 10) {
-            Direction = 1;
         }
 
         // change motor value
@@ -188,16 +187,16 @@ int main( void )
                 break;
         }
         // wait 0.5s for motor
-        HAL_Delay(500);
+        HAL_Delay(300);
 
         __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_1, 300);
         __HAL_TIM_SET_COMPARE(&htim8, TIM_CHANNEL_2, 300);
-        HAL_Delay(500);
+        //HAL_Delay(100);
 
         switch( State )
         {
         case IDLE:
-            wait_ms( 1000 );
+            wait_ms( 300 );
             sprintf(Msg, "Prox : %d\n", sensorValue);
             strcpy( ( char* )Buffer+1, ( char* )Msg );
 
@@ -220,28 +219,24 @@ int main( void )
 void Head_Right() {
     __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_1, 140);
     __HAL_TIM_SET_COMPARE(&htim8, TIM_CHANNEL_2, 380);
-    Railout = 0;
-    Lastuse = 0;
 }
 
 
 void Head_Left() {
-    __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_1, 220);
+    __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_1, 260);
     __HAL_TIM_SET_COMPARE(&htim8, TIM_CHANNEL_2, 400);
-    Lastuse = 1;
 }
 
 void Foward() {
     __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_1, 205);
     __HAL_TIM_SET_COMPARE(&htim8, TIM_CHANNEL_2, 400);
-    Railout += Lastuse*1;
 }
 
 void Do_Uturn() {
     __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_1, 100);
     __HAL_TIM_SET_COMPARE(&htim8, TIM_CHANNEL_2, 100);
     // extra delay
-    HAL_Delay(640);
+    HAL_Delay(840);
 }
 
 static void MX_TIM1_Init(void)
@@ -493,4 +488,17 @@ void OnRxError( void )
     // State = RX_ERROR;
     State = RX;
     debug_if( DEBUG_MESSAGE, "> OnRxError\n\r" );
+}
+
+
+void GPIO_Init(void)
+{
+    __HAL_RCC_GPIOA_CLK_ENABLE();
+
+    GPIO_InitTypeDef GPIO_InitStruct = {0};
+    GPIO_InitStruct.Pin = SER_PIN | RCK_PIN | SRCK_PIN;
+    GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+    GPIO_InitStruct.Pull = GPIO_NOPULL;
+    GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+    HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 }
