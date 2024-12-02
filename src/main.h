@@ -71,4 +71,6 @@ static void MX_GPIO_Init(void);
 
 float get_distance_cm(void);
 
+float pulse_in(GPIO_TypeDef *port, uint16_t pin, uint32_t state, uint32_t timeout);
+
 #endif // __MAIN_H__

@@ -126,7 +126,9 @@ int main(void)
         switch (State)
         {
         case IDLE:
-            sprintf((char *)Buffer + 1, "Vib : %d \r\n", 1);
+            debug("...Start Ultrasonic\n\r");
+            sprintf((char *)Buffer + 1, "Dist : %.2f \r\n", get_distance_cm());
+            debug("...End Ultrasonic\n\r");
             Radio.Send(Buffer, BufferSize);
             debug("...Ping\n\r");
             debug((char *)Buffer);
@@ -211,22 +213,27 @@ void GPIO_Init(void)
 
 float get_distance_cm(void) {
     int us;
+
+    debug("enabling TRIG\n");
     HAL_GPIO_WritePin(TRIG_GPIO_Port, TRIG_Pin, GPIO_PIN_SET);
-    debug("enabled TRIG\n");
-
-    wait_us(20);
-
+    wait_us(10);
     HAL_GPIO_WritePin(TRIG_GPIO_Port, TRIG_Pin, GPIO_PIN_RESET);
-    debug("disabled TRIG\n");
 
-    debug("waits for ECHO\n");
-    while (HAL_GPIO_ReadPin(ECHO_GPIO_Port, ECHO_Pin) == GPIO_PIN_RESET);
+    debug("measuring for ECHO\n");
+    us = pulse_in(ECHO_GPIO_Port, ECHO_Pin, GPIO_PIN_RESET, 1000000);
 
-    debug("measure pulse width of ECHO\n");
-    for (us = 0; HAL_GPIO_ReadPin(ECHO_GPIO_Port, ECHO_Pin) == GPIO_PIN_SET; us++) {
-        wait_us(1);
-    }
-
-    debug("done ultra-sonic\n");
+    debug("measured %d us\n", us);
     return (us / 58.0);
+}
+
+float pulse_in(GPIO_TypeDef *port, uint16_t pin, uint32_t state, uint32_t timeout) {
+    Timer timer;
+    timer.start();
+    while (HAL_GPIO_ReadPin(port, pin) == state) {
+        if (timer.read_us() > timeout) {
+            return 0;
+        }
+    }
+    timer.stop();
+    return timer.read_us();
 }
