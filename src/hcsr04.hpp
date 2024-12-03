@@ -97,4 +97,9 @@ private:
     }
 };
 
+
+// 주황이 L ECHO, 노랑이 L TRIG
+HCSR04 hcsr04_l(GPIOB, GPIO_PIN_1, GPIOB, GPIO_PIN_2);
+HCSR04 hcsr04_r(GPIOA, GPIO_PIN_11, GPIOA, GPIO_PIN_12);
+
 #endif // __HCSR04_H__
