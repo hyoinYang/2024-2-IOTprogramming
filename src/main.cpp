@@ -80,8 +80,7 @@ uint8_t Buffer[BUFFER_SIZE];
 
 int16_t RssiValue = 0.0;
 int8_t SnrValue = 0.0;
-int Railout = 0;
-int Lastuse = 0;
+int MoveCount = 0;
 
 TIM_HandleTypeDef htim1;
 TIM_HandleTypeDef htim8;
@@ -147,6 +146,8 @@ int main( void )
     int RightValue = 0;
     int LeftValue = 0;
     int Direction = 0;
+    double Rightdis = 0;
+    double Leftdis = 0;
 
     // PWM timer init and Initialization motor
     MX_TIM1_Init();
@@ -174,10 +175,6 @@ int main( void )
             Direction = LeftValue - RightValue;
         }
 
-        if (Railout == 10) {
-            Direction = 1;
-        }
-
         // change motor value
         switch (Direction) {
             case -1:
@@ -194,22 +191,31 @@ int main( void )
                 break;
         }
         // wait 0.5s for motor
-        HAL_Delay(500);
+        HAL_Delay(300);
 
         __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_1, 300);
         __HAL_TIM_SET_COMPARE(&htim8, TIM_CHANNEL_2, 300);
-        HAL_Delay(500);
+        //HAL_Delay(500);
+
+        Rightdis = hcsr04_r.read_cm();
+        Leftdis = hcsr04_l.read_cm();
+        
+        printf("SL: %f SR: %f\n", Leftdis, Rightdis);
 
         switch( State )
         {
         case IDLE:
-            sprintf((char *)Buffer + 1, "Sonic Left : %f \r\n", hcsr04_l.read_cm());
+            sprintf((char *)Buffer + 1, "SL: %f SR: %f \r\n", Leftdis, Rightdis);
             Radio.Send(Buffer, BufferSize);
             debug((char *)Buffer);
 
-            sprintf((char *)Buffer + 1, "Sonic Right : %f \r\n", hcsr04_r.read_cm());
-            Radio.Send(Buffer, BufferSize);
-            debug((char *)Buffer);
+            // sprintf((char *)Buffer + 1, "sonic : %f \r\n", Leftdis);
+            // Radio.Send(Buffer, BufferSize);
+            // debug((char *)Buffer);
+
+            // sprintf((char *)Buffer + 1, "Move : %d \r\n", MoveCount);
+            // Radio.Send(Buffer, BufferSize);
+            // debug((char *)Buffer);
             State = TX;
             break;
         case TX:
@@ -227,28 +233,28 @@ int main( void )
 void Head_Right() {
     __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_1, 140);
     __HAL_TIM_SET_COMPARE(&htim8, TIM_CHANNEL_2, 380);
-    Railout = 0;
-    Lastuse = 0;
+    MoveCount++;
 }
 
 
 void Head_Left() {
-    __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_1, 220);
+    __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_1, 260);
     __HAL_TIM_SET_COMPARE(&htim8, TIM_CHANNEL_2, 400);
-    Lastuse = 1;
+    MoveCount++;
 }
 
 void Foward() {
     __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_1, 205);
     __HAL_TIM_SET_COMPARE(&htim8, TIM_CHANNEL_2, 400);
-    Railout += Lastuse*1;
+    MoveCount++;
 }
 
 void Do_Uturn() {
     __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_1, 100);
     __HAL_TIM_SET_COMPARE(&htim8, TIM_CHANNEL_2, 100);
+    MoveCount = 0;
     // extra delay
-    HAL_Delay(640);
+    HAL_Delay(840);
 }
 
 static void MX_TIM1_Init(void)
