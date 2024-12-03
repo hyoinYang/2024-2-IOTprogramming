@@ -146,6 +146,7 @@ int main( void )
     int RightValue = 0;
     int LeftValue = 0;
     int Direction = 0;
+    int fow = 0;
     double Rightdis = 0;
     double Leftdis = 0;
 
@@ -239,28 +240,42 @@ int main( void )
 void Head_Right() {
     __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_1, 140);
     __HAL_TIM_SET_COMPARE(&htim8, TIM_CHANNEL_2, 380);
-    MoveCount++;
+    movec();
 }
 
 
 void Head_Left() {
     __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_1, 260);
     __HAL_TIM_SET_COMPARE(&htim8, TIM_CHANNEL_2, 400);
-    MoveCount++;
+    movec();
 }
 
 void Foward() {
     __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_1, 205);
     __HAL_TIM_SET_COMPARE(&htim8, TIM_CHANNEL_2, 400);
-    MoveCount++;
+    movec();
 }
 
 void Do_Uturn() {
     __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_1, 100);
     __HAL_TIM_SET_COMPARE(&htim8, TIM_CHANNEL_2, 100);
-    MoveCount = 0;
+    switch (fow) {
+            case 0:
+                fow = 1;
+                break;
+            case 1:
+                fow = 0;
+                break;
+        }
     // extra delay
     HAL_Delay(840);
+}
+
+void movec() {
+    if fow == 0
+     MoveCount++;
+    else 
+     MoveCount--;
 }
 
 static void MX_TIM1_Init(void)
