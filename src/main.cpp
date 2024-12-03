@@ -4,6 +4,7 @@
 #include "debug.h"
 #include "stdio.h"
 #include "dotmat.h"
+#include "hcsr04.hpp"
 
 /* Set this flag to '1' to display debug messages on the console */
 #define DEBUG_MESSAGE   1
@@ -26,8 +27,8 @@
 #define LORA_PREAMBLE_LENGTH                            8         // Same for Tx and Rx
 #define LORA_SYMBOL_TIMEOUT                             5         // Symbols
 #define LORA_FIX_LENGTH_PAYLOAD_ON                      false
-#define LORA_FHSS_ENABLED                               false  
-#define LORA_NB_SYMB_HOP                                4     
+#define LORA_FHSS_ENABLED                               false
+#define LORA_NB_SYMB_HOP                                4
 #define LORA_IQ_INVERSION_ON                            false
 #define LORA_CRC_ENABLED                                true
 
@@ -94,7 +95,7 @@ void Head_Left();
 void Do_Uturn();
 void Foward();
 
-int main( void ) 
+int main( void )
 {
     HAL_Init();
     uint8_t i;
@@ -116,10 +117,10 @@ int main( void )
         debug( "Radio could not be detected!\n\r", NULL );
         wait( 1 );
     }
-    
+
     debug_if( ( DEBUG_MESSAGE & ( Radio.DetectBoardType( ) == SX1272MB2XAS ) ), "\n\r > Board Type: SX1272MB2xAS < \n\r" );
 
-    Radio.SetChannel( RF_FREQUENCY ); 
+    Radio.SetChannel( RF_FREQUENCY );
     phymac_id = 1;
     debug("[PHYMAC] ID : %i\n", phymac_id);
 
@@ -139,7 +140,7 @@ int main( void )
                          LORA_IQ_INVERSION_ON, true );
 
     debug_if( DEBUG_MESSAGE, "Starting Ping-Pong loop\r\n" );
-    
+
     int sensorValue = 0;
     int RightValue = 0;
     int LeftValue = 0;
@@ -196,12 +197,13 @@ int main( void )
         switch( State )
         {
         case IDLE:
-            wait_ms( 300 );
-            sprintf(Msg, "Prox : %d\n", sensorValue);
-            strcpy( ( char* )Buffer+1, ( char* )Msg );
+            sprintf((char *)Buffer + 1, "Sonic Left : %f \r\n", hcsr04_l.read_cm());
+            Radio.Send(Buffer, BufferSize);
+            debug((char *)Buffer);
 
-            Radio.Send( Buffer, BufferSize );
-            debug( "...Ping\r\n" );
+            sprintf((char *)Buffer + 1, "Sonic Right : %f \r\n", hcsr04_r.read_cm());
+            Radio.Send(Buffer, BufferSize);
+            debug((char *)Buffer);
             State = TX;
             break;
         case TX:
@@ -460,7 +462,7 @@ void OnRxDone( uint8_t *payload, uint16_t size, int16_t rssi, int8_t snr )
     uint8_t dataIndFlag = 0;
     Radio.Sleep( );
     State = IDLE;
-    
+
     if (Buffer[PHYMAC_PDUOFFSET_TYPE] == PHYMAC_PDUTYPE_DATA &&
         Buffer[PHYMAC_PDUOFFSET_DSTID] == phymac_id)
     {
