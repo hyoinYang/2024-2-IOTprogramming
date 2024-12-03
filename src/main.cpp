@@ -3,6 +3,7 @@
 #include "sx1272-hal.h"
 #include "debug.h"
 #include "stdio.h"
+#include "hcsr04.hpp"
 
 /* Set this flag to '1' to display debug messages on the console */
 #define DEBUG_MESSAGE 0
@@ -126,9 +127,12 @@ int main(void)
         switch (State)
         {
         case IDLE:
-            sprintf((char *)Buffer + 1, "Vib : %d \r\n", 1);
+            sprintf((char *)Buffer + 1, "Sonic Left : %f \r\n", hcsr04_l.read_cm());
             Radio.Send(Buffer, BufferSize);
-            debug("...Ping\n\r");
+            debug((char *)Buffer);
+
+            sprintf((char *)Buffer + 1, "Sonic Right : %f \r\n", hcsr04_r.read_cm());
+            Radio.Send(Buffer, BufferSize);
             debug((char *)Buffer);
             State = TX;
             break;
