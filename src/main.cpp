@@ -80,6 +80,8 @@ uint8_t Buffer[BUFFER_SIZE];
 
 int16_t RssiValue = 0.0;
 int8_t SnrValue = 0.0;
+int Railout = 0;
+int Lastuse = 0;
 
 TIM_HandleTypeDef htim1;
 TIM_HandleTypeDef htim8;
@@ -172,6 +174,10 @@ int main( void )
             Direction = LeftValue - RightValue;
         }
 
+        if (Railout == 10) {
+            Direction = 1;
+        }
+
         // change motor value
         switch (Direction) {
             case -1:
@@ -188,11 +194,11 @@ int main( void )
                 break;
         }
         // wait 0.5s for motor
-        HAL_Delay3500);
+        HAL_Delay(500);
 
         __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_1, 300);
         __HAL_TIM_SET_COMPARE(&htim8, TIM_CHANNEL_2, 300);
-        //HAL_Delay(500);
+        HAL_Delay(500);
 
         switch( State )
         {
@@ -227,7 +233,7 @@ void Head_Right() {
 
 
 void Head_Left() {
-    __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_1, 260);
+    __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_1, 220);
     __HAL_TIM_SET_COMPARE(&htim8, TIM_CHANNEL_2, 400);
     Lastuse = 1;
 }
@@ -242,7 +248,7 @@ void Do_Uturn() {
     __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_1, 100);
     __HAL_TIM_SET_COMPARE(&htim8, TIM_CHANNEL_2, 100);
     // extra delay
-    HAL_Delay(840);
+    HAL_Delay(640);
 }
 
 static void MX_TIM1_Init(void)
