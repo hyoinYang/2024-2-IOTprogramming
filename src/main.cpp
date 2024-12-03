@@ -198,25 +198,23 @@ int main( void )
         Rightdis = hcsr04_r.read_cm();
         Leftdis = hcsr04_l.read_cm();
 
-        if (Rightdis!=0 && Leftdis==0){
+        if (Rightdis < 90 && Leftdis >= 90){
             updateDisplay(SCR_SEE_RIGHT);
         }
-        else if (Rightdis==0 && Leftdis!=0){
+        else if (Rightdis >= 90 && Leftdis < 90){
             updateDisplay(SCR_SEE_LEFT);
         }
-        else if (Rightdis!=0 && Leftdis!=0){
+        else if (Rightdis < 90 && Leftdis < 90){
             updateDisplay(SCR_CREEPER);
         }
         else{
             updateDisplay(SCR_DEFAULT);
         }
-        
-        printf("SL: %f SR: %f\n", Leftdis, Rightdis);
 
         switch( State )
         {
         case IDLE:
-            sprintf((char *)Buffer + 1, "SL: %f SR: %f \r\n", Leftdis, Rightdis);
+            sprintf((char *)Buffer + 1, "{\"L_Dist\":%.2f,\"R_Dist\":%.2f,\"Mv\":%d}", Leftdis, Rightdis, MoveCount);
             Radio.Send(Buffer, BufferSize);
             debug((char *)Buffer);
 
@@ -224,9 +222,6 @@ int main( void )
             // Radio.Send(Buffer, BufferSize);
             // debug((char *)Buffer);
 
-            // sprintf((char *)Buffer + 1, "Move : %d \r\n", MoveCount);
-            // Radio.Send(Buffer, BufferSize);
-            // debug((char *)Buffer);
             State = TX;
             break;
         case TX:
