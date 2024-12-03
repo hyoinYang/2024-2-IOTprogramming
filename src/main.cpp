@@ -164,8 +164,6 @@ int main( void )
         RightValue = HAL_GPIO_ReadPin(RightIR_GPIO_Port, RightIR_Pin);
         LeftValue = HAL_GPIO_ReadPin(LeftIR_GPIO_Port, LeftIR_Pin);
 
-        updateDisplay(SCR_DEFAULT);
-
         // decide uturn or not
         if (RightValue + LeftValue == 2) {
             Direction = 2;
@@ -199,6 +197,19 @@ int main( void )
 
         Rightdis = hcsr04_r.read_cm();
         Leftdis = hcsr04_l.read_cm();
+
+        if (Rightdis!=0 && Leftdis==0){
+            updateDisplay(SCR_SEE_RIGHT);
+        }
+        else if (Rightdis==0 && Leftdis!=0){
+            updateDisplay(SCR_SEE_LEFT);
+        }
+        else if (Rightdis!=0 && Leftdis!=0){
+            updateDisplay(SCR_CREEPER);
+        }
+        else{
+            updateDisplay(SCR_DEFAULT);
+        }
         
         printf("SL: %f SR: %f\n", Leftdis, Rightdis);
 
