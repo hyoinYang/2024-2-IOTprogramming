@@ -34,7 +34,7 @@
 
 
 #define RX_TIMEOUT_VALUE                                1000      // in ms
-#define BUFFER_SIZE                                     32        // Define the payload size here
+#define BUFFER_SIZE                                     64        // Define the payload size here
 
 #define Rx_ID                                           16
 
@@ -81,6 +81,7 @@ uint8_t Buffer[BUFFER_SIZE];
 int16_t RssiValue = 0.0;
 int8_t SnrValue = 0.0;
 int MoveCount = 0;
+int fow = 0;
 
 TIM_HandleTypeDef htim1;
 TIM_HandleTypeDef htim8;
@@ -146,7 +147,6 @@ int main( void )
     int RightValue = 0;
     int LeftValue = 0;
     int Direction = 0;
-    int fow = 0;
     double Rightdis = 0;
     double Leftdis = 0;
 
@@ -215,7 +215,9 @@ int main( void )
         switch( State )
         {
         case IDLE:
-            sprintf((char *)Buffer + 1, "{\"L_Dist\":%.2f,\"R_Dist\":%.2f,\"Mv\":%d}", Leftdis, Rightdis, MoveCount);
+            float ld = fow ? Leftdis : Rightdis;
+            float rd = fow ? Rightdis : Leftdis;
+            sprintf((char *)Buffer + 1, "({L_DIst: %.2f, R_Dist: %.2f, Mv : %d}) \r\n", ld, rd,MoveCount);
             Radio.Send(Buffer, BufferSize);
             debug((char *)Buffer);
 
@@ -240,42 +242,44 @@ int main( void )
 void Head_Right() {
     __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_1, 140);
     __HAL_TIM_SET_COMPARE(&htim8, TIM_CHANNEL_2, 380);
-    movec();
+    if(fow == 0)
+        MoveCount++;
+    else if(fow == 1)
+        MoveCount--;
 }
 
 
 void Head_Left() {
     __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_1, 260);
     __HAL_TIM_SET_COMPARE(&htim8, TIM_CHANNEL_2, 400);
-    movec();
+    if(fow == 0)
+        MoveCount++;
+    else if(fow == 1)
+        MoveCount--;
 }
 
 void Foward() {
     __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_1, 205);
     __HAL_TIM_SET_COMPARE(&htim8, TIM_CHANNEL_2, 400);
-    movec();
+    if(fow == 0)
+        MoveCount++;
+    else if(fow == 1)
+        MoveCount--;
 }
 
 void Do_Uturn() {
     __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_1, 100);
     __HAL_TIM_SET_COMPARE(&htim8, TIM_CHANNEL_2, 100);
     switch (fow) {
-            case 0:
-                fow = 1;
-                break;
-            case 1:
-                fow = 0;
-                break;
-        }
+    case 0:
+        fow == 1;
+        break;
+    case 1:
+        fow == 0;
+        break;
+    }
     // extra delay
     HAL_Delay(840);
-}
-
-void movec() {
-    if fow == 0
-     MoveCount++;
-    else 
-     MoveCount--;
 }
 
 static void MX_TIM1_Init(void)
