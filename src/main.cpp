@@ -202,7 +202,8 @@ int main( void )
         else if (MoveCount < 0) {
             MoveCount = 0;
         }
-        
+
+        HAL_Delay(1500);
         Rightdis = hcsr04_r.read_cm();
         Leftdis = hcsr04_l.read_cm();
 
