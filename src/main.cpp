@@ -196,6 +196,13 @@ int main( void )
         __HAL_TIM_SET_COMPARE(&htim8, TIM_CHANNEL_2, 300);
         //HAL_Delay(500);
 
+        if (MoveCount > 50) {
+            MoveCount = 50;
+        }
+        else if (MoveCount < 0) {
+            MoveCount = 0;
+        }
+        
         Rightdis = hcsr04_r.read_cm();
         Leftdis = hcsr04_l.read_cm();
 
@@ -272,10 +279,10 @@ void Do_Uturn() {
     __HAL_TIM_SET_COMPARE(&htim8, TIM_CHANNEL_2, 100);
     switch (fow) {
     case 0:
-        fow == 1;
+        fow = 1;
         break;
     case 1:
-        fow == 0;
+        fow = 0;
         break;
     }
     // extra delay
