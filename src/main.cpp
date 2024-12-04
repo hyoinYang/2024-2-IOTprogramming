@@ -217,7 +217,7 @@ int main( void )
         case IDLE:
             float ld = fow ? Leftdis : Rightdis;
             float rd = fow ? Rightdis : Leftdis;
-            sprintf((char *)Buffer + 1, "({L_DIst: %.2f, R_Dist: %.2f, Mv : %d}) \r\n", ld, rd,MoveCount);
+            sprintf((char *)Buffer + 1, "({L_Dist: %.2f, R_Dist: %.2f, Mv : %d}) \r\n", ld, rd,MoveCount);
             Radio.Send(Buffer, BufferSize);
             debug((char *)Buffer);
 
